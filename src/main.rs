@@ -3,8 +3,9 @@ use axum_prometheus::PrometheusMetricLayer;
 use std::error::Error;
 use tokio::net::TcpListener;
 use tower::ServiceBuilder;
-use tower_http::trace::{
-    DefaultMakeSpan, DefaultOnFailure, DefaultOnRequest, DefaultOnResponse, TraceLayer,
+use tower_http::{
+    cors::CorsLayer,
+    trace::{DefaultMakeSpan, DefaultOnFailure, DefaultOnRequest, DefaultOnResponse, TraceLayer},
 };
 use tracing::{info, Level};
 
@@ -27,13 +28,16 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .route("/ping", get(|| async move { "pong" }))
         .route("/metrics", get(|| async move { prom_handler.render() }))
         .layer(
-            ServiceBuilder::new().layer(prom_layer).layer(
-                TraceLayer::new_for_http()
-                    .make_span_with(DefaultMakeSpan::new().include_headers(true))
-                    .on_request(DefaultOnRequest::new().level(Level::INFO))
-                    .on_response(DefaultOnResponse::new().level(Level::INFO))
-                    .on_failure(DefaultOnFailure::new()),
-            ),
+            ServiceBuilder::new()
+                .layer(prom_layer)
+                .layer(
+                    TraceLayer::new_for_http()
+                        .make_span_with(DefaultMakeSpan::new().include_headers(true))
+                        .on_request(DefaultOnRequest::new().level(Level::INFO))
+                        .on_response(DefaultOnResponse::new().level(Level::INFO))
+                        .on_failure(DefaultOnFailure::new()),
+                )
+                .layer(CorsLayer::permissive()),
         );
 
     axum::serve(listener, router)
