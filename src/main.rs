@@ -7,20 +7,24 @@ use tower_http::{
     cors::CorsLayer,
     trace::{DefaultMakeSpan, DefaultOnFailure, DefaultOnRequest, DefaultOnResponse, TraceLayer},
 };
-use tracing::{info, Level};
+use tracing::{error, info, Level};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     tracing_subscriber::fmt().init();
 
-    let listener = TcpListener::bind("0.0.0.0:8080")
+    let host = std::env::var("HOST").unwrap_or_else(|_| "0.0.0.0".to_string());
+    let port = std::env::var("PORT")
+        .unwrap_or_else(|_| "8080".to_string())
+        .parse::<u16>()
+        .inspect_err(|err| error!("{err:?}"))?;
+    let addr = format!("{host}:{port}");
+
+    let listener = TcpListener::bind(&addr)
         .await
         .inspect_err(|err| info!("{err:?}"))?;
 
-    let listening_ip = listener.local_addr()?.ip();
-    let listening_port = listener.local_addr()?.port();
-
-    info!("Listening on {}:{}", listening_ip, listening_port);
+    info!("Listening on {addr}");
 
     let (prom_layer, prom_handler) = PrometheusMetricLayer::pair();
 
