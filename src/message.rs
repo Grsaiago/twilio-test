@@ -1,9 +1,6 @@
 use std::collections::HashMap;
 
-use axum::{
-    extract::{Json, Query},
-    response::IntoResponse,
-};
+use axum::{extract::Query, response::IntoResponse, Json};
 use axum_extra::TypedHeader;
 use headers::ContentType;
 use serde::{Deserialize, Serialize};

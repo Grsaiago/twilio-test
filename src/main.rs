@@ -11,8 +11,8 @@ use tower_http::{
     cors::CorsLayer,
     trace::{DefaultMakeSpan, DefaultOnRequest, DefaultOnResponse, TraceLayer},
 };
-use tracing::{error, info, Level};
 mod message;
+use tracing::{error, info, Level};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
