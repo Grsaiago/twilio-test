@@ -22,7 +22,7 @@ pub struct WhatsappMessage {
     pub account_sid: String, // AccountSid: ID of the associated account.
 
     #[serde(rename(deserialize = "MessagingServiceSid"))]
-    pub messaging_service_sid: String, // MessagingServiceSid: ID of the messaging service.
+    pub messaging_service_sid: Option<String>, // MessagingServiceSid: ID of the messaging service.
 
     #[serde(rename(deserialize = "From"))]
     pub from: String, // From: Sender's phone number or channel address.
@@ -56,13 +56,16 @@ pub struct WhatsappMessage {
     pub button_text: Option<String>, // ButtonText: The text of a Quick reply button.
 }
 
-pub async fn handle_message(Form(message): Form<HashMap<String, String>>) -> impl IntoResponse {
+pub async fn handle_message(Form(message): Form<WhatsappMessage>) -> impl IntoResponse {
     let json_pretty = serde_json::to_string_pretty(&message).unwrap();
     info!("Pinged handle_message_post Twiml message: {}", json_pretty);
     let res = Twiml::new()
         .add(&twiml::Message {
             //txt: format!("Você apertou a opção: {}", message.button_text),
-            txt: "Você enviou uma mensagem de volta, te amo Luara".to_string(),
+            txt: format!(
+                "Mermão, porque você tá falando '{}'? ablué das ideia!",
+                message.body
+            ),
         })
         .as_twiml();
 
