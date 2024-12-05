@@ -1,9 +1,6 @@
-use axum::{
-    routing::{get, post},
-    Router,
-};
+use axum::{routing::get, Router};
 use axum_prometheus::PrometheusMetricLayer;
-use message::{handle_get_message, handle_message};
+use message::handle_message;
 use std::error::Error;
 use tokio::net::TcpListener;
 use tower::ServiceBuilder;
@@ -36,9 +33,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let router = Router::new()
         .route("/ping", get(|| async move { "pong" }))
         .route("/metrics", get(|| async move { prom_handler.render() }))
-        .route("/messages", get(handle_get_message))
-        .route("/messages", post(handle_message))
-        .layer(
+        .route("/messages", get(handle_message).post(handle_message))
+        // this makes the layer only apply when a route is matched, instead of '.layer()'
+        .route_layer(
             ServiceBuilder::new()
                 .layer(prom_layer)
                 .layer(

@@ -62,19 +62,7 @@ pub async fn handle_message(Form(message): Form<HashMap<String, String>>) -> imp
     let res = Twiml::new()
         .add(&twiml::Message {
             //txt: format!("Você apertou a opção: {}", message.button_text),
-            txt: "Você apertou a alguma opção".to_string(),
-        })
-        .as_twiml();
-    (TypedHeader(ContentType::xml()), res)
-}
-
-pub async fn handle_get_message(Form(message): Form<HashMap<String, String>>) -> impl IntoResponse {
-    let json_pretty = serde_json::to_string_pretty(&message).unwrap();
-    info!("Pinged handle_get_message Twiml message: {}", json_pretty);
-    let res = Twiml::new()
-        .add(&twiml::Message {
-            //txt: format!("Você apertou a opção: {}", message.button_text),
-            txt: "Você apertou a alguma opção".to_string(),
+            txt: "Você enviou uma mensagem de volta, te amo Luara".to_string(),
         })
         .as_twiml();
     (TypedHeader(ContentType::xml()), res)
