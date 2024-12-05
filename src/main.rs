@@ -3,7 +3,7 @@ use axum::{
     Router,
 };
 use axum_prometheus::PrometheusMetricLayer;
-use message::handle_message;
+use message::{handle_get_message, handle_message};
 use std::error::Error;
 use tokio::net::TcpListener;
 use tower::ServiceBuilder;
@@ -36,6 +36,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let router = Router::new()
         .route("/ping", get(|| async move { "pong" }))
         .route("/metrics", get(|| async move { prom_handler.render() }))
+        .route("/messages", get(handle_get_message))
         .route("/messages", post(handle_message))
         .layer(
             ServiceBuilder::new()
