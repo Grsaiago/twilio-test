@@ -1,9 +1,11 @@
 use axum::{extract::Json, response::IntoResponse};
-use serde::Deserialize;
+use axum_extra::TypedHeader;
+use headers::ContentType;
+use serde::{Deserialize, Serialize};
 use tracing::info;
 use twilio::twiml::{self, Twiml};
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Serialize, Debug)]
 pub struct WhatsappMessage {
     #[serde(rename(deserialize = "MessageSid"))]
     pub message_sid: String, // MessageSid: Unique identifier for the message.
@@ -53,11 +55,12 @@ pub struct WhatsappMessage {
 }
 
 pub async fn handle_message(message: Json<WhatsappMessage>) -> impl IntoResponse {
-    info!("{message:?}");
+    let json_pretty = serde_json::to_string_pretty(&message.0).unwrap();
+    info!("Twiml message: {}", json_pretty);
     let res = Twiml::new()
         .add(&twiml::Message {
             txt: format!("Você apertou a opção: {}", message.button_text),
         })
         .as_twiml();
-    res
+    (TypedHeader(ContentType::xml()), res)
 }
