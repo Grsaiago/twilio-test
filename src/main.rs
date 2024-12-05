@@ -11,7 +11,7 @@ use tokio::net::TcpListener;
 use tower::ServiceBuilder;
 use tower_http::{
     cors::CorsLayer,
-    trace::{DefaultOnRequest, DefaultOnResponse, TraceLayer},
+    trace::{DefaultMakeSpan, DefaultOnRequest, DefaultOnResponse, TraceLayer},
 };
 use tracing::{error, info, info_span, Level};
 mod message;
@@ -44,20 +44,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 .layer(prom_layer)
                 .layer(
                     TraceLayer::new_for_http()
-                        .make_span_with(|request: &Request<_>| {
-                            // Log the matched route's path (with placeholders not filled in).
-                            // Use request.uri() or OriginalUri if you want the real path.
-                            let matched_path = request
-                                .extensions()
-                                .get::<MatchedPath>()
-                                .map(MatchedPath::as_str);
-
-                            info_span!(
-                                "http_request",
-                                method = ?request.method(),
-                                matched_path,
-                            )
-                        })
+                        .make_span_with(DefaultMakeSpan::new().level(Level::INFO))
                         .on_request(DefaultOnRequest::new().level(Level::INFO))
                         .on_response(DefaultOnResponse::new().level(Level::INFO))
                         .on_eos(()) // disable it
