@@ -46,14 +46,14 @@ pub struct WhatsappMessage {
     #[serde(rename(deserialize = "WaId"))]
     pub wa_id: String, // WaId: The sender's WhatsApp ID (typically a phone number).
 
-    #[serde(rename(deserialize = "Forwarded"))]
+    #[serde(rename(deserialize = "Forwarded"), default)]
     pub forwarded: bool, // Forwarded: True if the message has been forwarded once.
 
-    #[serde(rename(deserialize = "FrequentlyForwarded"))]
+    #[serde(rename(deserialize = "FrequentlyForwarded"), default)]
     pub frequently_forwarded: bool, // FrequentlyForwarded: True if the message has been frequently forwarded.
 
     #[serde(rename(deserialize = "ButtonText"))]
-    pub button_text: String, // ButtonText: The text of a Quick reply button.
+    pub button_text: Option<String>, // ButtonText: The text of a Quick reply button.
 }
 
 pub async fn handle_message(Form(message): Form<HashMap<String, String>>) -> impl IntoResponse {
@@ -65,5 +65,6 @@ pub async fn handle_message(Form(message): Form<HashMap<String, String>>) -> imp
             txt: "Você enviou uma mensagem de volta, te amo Luara".to_string(),
         })
         .as_twiml();
+
     (TypedHeader(ContentType::xml()), res)
 }
