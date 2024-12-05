@@ -1,6 +1,4 @@
 use axum::{
-    extract::MatchedPath,
-    http::Request,
     routing::{get, post},
     Router,
 };
@@ -13,7 +11,7 @@ use tower_http::{
     cors::CorsLayer,
     trace::{DefaultMakeSpan, DefaultOnRequest, DefaultOnResponse, TraceLayer},
 };
-use tracing::{error, info, info_span, Level};
+use tracing::{error, info, Level};
 mod message;
 
 #[tokio::main]
