@@ -1,4 +1,7 @@
-use axum::{extract::Json, response::IntoResponse};
+use axum::{
+    extract::{Json, Query},
+    response::IntoResponse,
+};
 use axum_extra::TypedHeader;
 use headers::ContentType;
 use serde::{Deserialize, Serialize};
@@ -54,7 +57,7 @@ pub struct WhatsappMessage {
     pub button_text: String, // ButtonText: The text of a Quick reply button.
 }
 
-pub async fn handle_message(message: Json<WhatsappMessage>) -> impl IntoResponse {
+pub async fn handle_message(message: Query<WhatsappMessage>) -> impl IntoResponse {
     let json_pretty = serde_json::to_string_pretty(&message.0).unwrap();
     info!("Twiml message: {}", json_pretty);
     let res = Twiml::new()
