@@ -59,9 +59,23 @@ pub struct WhatsappMessage {
     pub button_text: String, // ButtonText: The text of a Quick reply button.
 }
 
-pub async fn handle_message(message: Query<HashMap<String, String>>) -> impl IntoResponse {
-    let json_pretty = serde_json::to_string_pretty(&message.0).unwrap();
-    info!("Twiml message: {}", json_pretty);
+pub async fn handle_message(Json(message): Json<HashMap<String, String>>) -> impl IntoResponse {
+    let json_pretty = serde_json::to_string_pretty(&message).unwrap();
+    info!("Pinged handle_message_post Twiml message: {}", json_pretty);
+    let res = Twiml::new()
+        .add(&twiml::Message {
+            //txt: format!("Você apertou a opção: {}", message.button_text),
+            txt: "Você apertou a alguma opção".to_string(),
+        })
+        .as_twiml();
+    (TypedHeader(ContentType::xml()), res)
+}
+
+pub async fn handle_get_message(
+    Query(message): Query<HashMap<String, String>>,
+) -> impl IntoResponse {
+    let json_pretty = serde_json::to_string_pretty(&message).unwrap();
+    info!("Pinged handle_message_get Twiml message: {}", json_pretty);
     let res = Twiml::new()
         .add(&twiml::Message {
             //txt: format!("Você apertou a opção: {}", message.button_text),
