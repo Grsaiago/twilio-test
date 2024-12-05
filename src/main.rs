@@ -1,4 +1,6 @@
 use axum::{
+    extract::MatchedPath,
+    http::Request,
     routing::{get, post},
     Router,
 };
@@ -9,14 +11,14 @@ use tokio::net::TcpListener;
 use tower::ServiceBuilder;
 use tower_http::{
     cors::CorsLayer,
-    trace::{DefaultMakeSpan, DefaultOnFailure, DefaultOnRequest, DefaultOnResponse, TraceLayer},
+    trace::{DefaultOnRequest, DefaultOnResponse, TraceLayer},
 };
-use tracing::{error, info, Level};
+use tracing::{error, info, info_span, Level};
 mod message;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    tracing_subscriber::fmt().init();
+    tracing_subscriber::fmt().with_max_level(Level::INFO).init();
 
     let host = std::env::var("HOST").unwrap_or_else(|_| "0.0.0.0".to_string());
     let port = std::env::var("PORT")
@@ -42,10 +44,24 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 .layer(prom_layer)
                 .layer(
                     TraceLayer::new_for_http()
-                        .make_span_with(DefaultMakeSpan::new().include_headers(true))
+                        .make_span_with(|request: &Request<_>| {
+                            // Log the matched route's path (with placeholders not filled in).
+                            // Use request.uri() or OriginalUri if you want the real path.
+                            let matched_path = request
+                                .extensions()
+                                .get::<MatchedPath>()
+                                .map(MatchedPath::as_str);
+
+                            info_span!(
+                                "http_request",
+                                method = ?request.method(),
+                                matched_path,
+                            )
+                        })
                         .on_request(DefaultOnRequest::new().level(Level::INFO))
                         .on_response(DefaultOnResponse::new().level(Level::INFO))
-                        .on_failure(DefaultOnFailure::new()),
+                        .on_eos(()) // disable it
+                        .on_body_chunk(()), // disable it
                 )
                 .layer(CorsLayer::permissive()),
         );
