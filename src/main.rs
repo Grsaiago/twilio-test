@@ -1,5 +1,9 @@
-use axum::{routing::get, Router};
+use axum::{
+    routing::{get, post},
+    Router,
+};
 use axum_prometheus::PrometheusMetricLayer;
+use message::handle_message;
 use std::error::Error;
 use tokio::net::TcpListener;
 use tower::ServiceBuilder;
@@ -8,6 +12,7 @@ use tower_http::{
     trace::{DefaultMakeSpan, DefaultOnFailure, DefaultOnRequest, DefaultOnResponse, TraceLayer},
 };
 use tracing::{error, info, Level};
+mod message;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
@@ -31,6 +36,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let router = Router::new()
         .route("/ping", get(|| async move { "pong" }))
         .route("/metrics", get(|| async move { prom_handler.render() }))
+        .route("/messages", post(handle_message))
         .layer(
             ServiceBuilder::new()
                 .layer(prom_layer)
