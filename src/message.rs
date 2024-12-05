@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use axum::{extract::Query, response::IntoResponse, Json};
+use axum::{response::IntoResponse, Form};
 use axum_extra::TypedHeader;
 use headers::ContentType;
 use serde::{Deserialize, Serialize};
@@ -56,7 +56,7 @@ pub struct WhatsappMessage {
     pub button_text: String, // ButtonText: The text of a Quick reply button.
 }
 
-pub async fn handle_message(Json(message): Json<HashMap<String, String>>) -> impl IntoResponse {
+pub async fn handle_message(Form(message): Form<HashMap<String, String>>) -> impl IntoResponse {
     let json_pretty = serde_json::to_string_pretty(&message).unwrap();
     info!("Pinged handle_message_post Twiml message: {}", json_pretty);
     let res = Twiml::new()
@@ -68,11 +68,9 @@ pub async fn handle_message(Json(message): Json<HashMap<String, String>>) -> imp
     (TypedHeader(ContentType::xml()), res)
 }
 
-pub async fn handle_get_message(
-    Query(message): Query<HashMap<String, String>>,
-) -> impl IntoResponse {
+pub async fn handle_get_message(Form(message): Form<HashMap<String, String>>) -> impl IntoResponse {
     let json_pretty = serde_json::to_string_pretty(&message).unwrap();
-    info!("Pinged handle_message_get Twiml message: {}", json_pretty);
+    info!("Pinged handle_get_message Twiml message: {}", json_pretty);
     let res = Twiml::new()
         .add(&twiml::Message {
             //txt: format!("Você apertou a opção: {}", message.button_text),
